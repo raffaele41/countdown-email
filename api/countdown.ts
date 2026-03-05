@@ -1,41 +1,39 @@
 import { ImageResponse } from '@vercel/og'
 
-export const runtime = 'edge'
+export const config = { runtime: 'edge' }
 
 export default function handler() {
-
-  const launch = new Date("2026-04-01T00:00:00Z")
+  const launch = new Date('2026-04-01T00:00:00Z')
   const now = new Date()
 
-  let diff = Math.floor((launch.getTime() - now.getTime()) / 1000 / 60 / 60)
+  let diffHours = Math.floor((launch - now) / 1000 / 60 / 60)
+  if (diffHours < 0) diffHours = 0
 
-  if (diff < 0) diff = 0
+  const days = Math.floor(diffHours / 24)
+  const hours = diffHours % 24
 
-  const days = Math.floor(diff / 24)
-  const hours = diff % 24
+  const d = String(days).padStart(2, '0')
+  const h = String(hours).padStart(2, '0')
 
   return new ImageResponse(
-    (
-      <div
-        style={{
+    {
+      type: 'div',
+      props: {
+        style: {
           width: '600px',
           height: '200px',
           display: 'flex',
-          justifyContent: 'center',
           alignItems: 'center',
+          justifyContent: 'center',
           background: '#1a0505',
-          color: 'white',
-          fontSize: 70,
+          color: '#ffffff',
+          fontFamily: 'Arial, sans-serif',
           fontWeight: 900,
-          fontFamily: 'Arial'
-        }}
-      >
-        {String(days).padStart(2,'0')}d : {String(hours).padStart(2,'0')}h
-      </div>
-    ),
-    {
-      width: 600,
-      height: 200
-    }
+          fontSize: 72,
+        },
+        children: `${d}d : ${h}h`,
+      },
+    },
+    { width: 600, height: 200 }
   )
 }
