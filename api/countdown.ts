@@ -1,5 +1,3 @@
-import { createCanvas } from '@napi-rs/canvas'
-
 export const config = { runtime: 'nodejs' }
 
 export default async function handler(req, res) {
@@ -12,21 +10,21 @@ export default async function handler(req, res) {
   const days = String(Math.floor(diffHours / 24)).padStart(2, '0')
   const hours = String(diffHours % 24).padStart(2, '0')
 
-  const canvas = createCanvas(600, 200)
-  const ctx = canvas.getContext('2d')
+  const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="600" height="200">
+      <rect width="600" height="200" fill="#1a0505"/>
+      <text x="300" y="130" 
+        font-family="Arial" font-size="90" font-weight="bold"
+        fill="white" text-anchor="middle">
+        ${days}d : ${hours}h
+      </text>
+    </svg>
+  `
 
-  ctx.fillStyle = '#1a0505'
-  ctx.fillRect(0, 0, 600, 200)
-
-  ctx.fillStyle = '#ffffff'
-  ctx.font = 'bold 80px Arial'
-  ctx.textAlign = 'center'
-  ctx.textBaseline = 'middle'
-  ctx.fillText(`${days}d : ${hours}h`, 300, 110)
-
-  const buffer = canvas.toBuffer('image/png')
+  const sharp = (await import('sharp')).default
+  const png = await sharp(Buffer.from(svg)).png().toBuffer()
 
   res.setHeader('Content-Type', 'image/png')
   res.setHeader('Cache-Control', 'no-cache, no-store')
-  res.end(buffer)
+  res.end(png)
 }
