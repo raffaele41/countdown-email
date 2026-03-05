@@ -1,39 +1,32 @@
-import { ImageResponse } from '@vercel/og'
+import { createCanvas } from '@napi-rs/canvas'
 
-export const config = { runtime: 'edge' }
+export const config = { runtime: 'nodejs' }
 
-export default function handler() {
+export default async function handler(req, res) {
   const launch = new Date('2026-04-01T00:00:00Z')
   const now = new Date()
 
   let diffHours = Math.floor((launch - now) / 1000 / 60 / 60)
   if (diffHours < 0) diffHours = 0
 
-  const days = Math.floor(diffHours / 24)
-  const hours = diffHours % 24
+  const days = String(Math.floor(diffHours / 24)).padStart(2, '0')
+  const hours = String(diffHours % 24).padStart(2, '0')
 
-  const d = String(days).padStart(2, '0')
-  const h = String(hours).padStart(2, '0')
+  const canvas = createCanvas(600, 200)
+  const ctx = canvas.getContext('2d')
 
-  return new ImageResponse(
-    {
-      type: 'div',
-      props: {
-        style: {
-          width: '600px',
-          height: '200px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          background: '#1a0505',
-          color: '#ffffff',
-          fontFamily: 'Arial, sans-serif',
-          fontWeight: 900,
-          fontSize: 72,
-        },
-        children: `${d}d : ${h}h`,
-      },
-    },
-    { width: 600, height: 200 }
-  )
+  ctx.fillStyle = '#1a0505'
+  ctx.fillRect(0, 0, 600, 200)
+
+  ctx.fillStyle = '#ffffff'
+  ctx.font = 'bold 80px Arial'
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+  ctx.fillText(`${days}d : ${hours}h`, 300, 110)
+
+  const buffer = canvas.toBuffer('image/png')
+
+  res.setHeader('Content-Type', 'image/png')
+  res.setHeader('Cache-Control', 'no-cache, no-store')
+  res.end(buffer)
 }
